@@ -4,11 +4,7 @@ require 'csv'
 require 'ap'
 require 'relax4'
 require 'set'
-
-PREFS_COLUMN_BEGIN_INDEX = 1
-PREFS_COLUMN_END_INDEX = -1
-
-JOBS = ["PDC", "ADC", "Cook", "Weekly House Clean", "Weekly Kitchen Clean"]
+require 'json'
 
 class SchedulingTask
   def initialize(jobs, preferences)
@@ -67,12 +63,16 @@ end
 
 post '/process' do
     # doc = open 'https://docs.google.com/spreadsheets/d/1H0cn1QIEDLGcmYhso00TP6Y_ACBH6ojxCURGhEX_Mqc/export?format=csv'
+    tokens_by_line = params[:jobs].each_line.map { |line| line.chomp.split }
+    jobs = tokens_by_line.map { |tokens| tokens[0..-2].join(' ') }
+    demand = tokens_by_line.map(&:last).map(&:to_i)
+
     doc = open params[:url].sub('htmlembed', 'export?format=csv')
     csv = CSV.new(doc, headers: :first_row)
     prefs = {}
     csv.read.each do |a| # Strip timestamp, hash name to prefs
         name = a[1]
-        their_prefs = a.to_a[2..-1].map { |column, choice| JOBS.index(choice) + 1 }
+        their_prefs = a.to_a[2..-1].map { |column, choice| jobs.index(choice) + 1 }
         prefs[name] = their_prefs
     end
 
