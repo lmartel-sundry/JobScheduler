@@ -7,9 +7,10 @@ require 'set'
 require 'json'
 
 class SchedulingTask
-  def initialize(jobs, preferences)
+  def initialize(jobs, demands, preferences)
     @jobs = jobs
     @preferences = preferences
+    @demands = demands
     @node_indices = {}
   end
 
@@ -50,9 +51,8 @@ class SchedulingTask
     [start_nodes, end_nodes, costs]
   end
 
-  def build_demands(node_index_map)
-    job_set = Set.new(@jobs)
-    node_index_map.map { |entity, node_index| job_set.include?(entity) ? 1 : -1 }
+  def build_demands
+    @demands
   end
 end
 
@@ -76,6 +76,6 @@ post '/process' do
         prefs[name] = their_prefs
     end
 
-    solution = SchedulingTask.new(JOBS, prefs).solve
+    solution = SchedulingTask.new(JOBS, demands, prefs).solve
     solution
 end
