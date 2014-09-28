@@ -21,6 +21,8 @@ class SchedulingTask
     capacities = start_nodes.map { 1 }
 
     @solution ||= Relax4.solve(demands: demands, start_nodes: start_nodes, end_nodes: end_nodes, costs: costs, capacities: capacities)
+
+    map_solution_to_names(@solution, node_index_map, start_nodes, end_nodes)
   end
 
   def build_index_map
@@ -40,8 +42,6 @@ class SchedulingTask
       end
     end
 
-    ap edges
-
     edges = edges.flatten(1)
 
     start_nodes = edges.map { |edge| edge[0] }
@@ -53,6 +53,20 @@ class SchedulingTask
 
   def build_demands
     @demands
+  end
+
+  def map_solution_to_names(solution, node_index_map, start_nodes, end_nodes)
+    inverted_map = node_index_map.reduce({}) { |memo, key, value| memo[value] = key }
+    result = {}
+
+    solution.each_with_index do |flow_value, edge_index|
+      name_of_person = inverted_map[start_nodes[edge_index]]
+      name_of_job = inverted_map[end_nodes[edge_index]]
+
+      result[name_of_person] = name_of_job
+    end
+
+    return result
   end
 end
 
