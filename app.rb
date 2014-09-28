@@ -67,6 +67,9 @@ post '/process' do
     jobs = tokens_by_line.map { |tokens| tokens[0..-2].join(' ') }
     demand = tokens_by_line.map(&:last).map(&:to_i)
 
+    return "Incorrect input format" if jobs.length != demand.length
+    return "Person requirements must be > 0!" if demands.filter { |d| d <= 0 }.size > 0
+
     doc = open params[:url].sub('htmlembed', 'export?format=csv')
     csv = CSV.new(doc, headers: :first_row)
     prefs = {}
